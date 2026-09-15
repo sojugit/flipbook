@@ -1,328 +1,1006 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>My Flipbook</title>
+<meta charset="UTF-8">
 
-  <!-- PDF.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
 
-  <!-- PageFlip -->
-  <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js"></script>
+<title>My Digital Flipbook</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
+
+<!-- PDF.js -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+
+<!-- PageFlip -->
+
+<script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js"></script>
+
+
+<style>
+
+/* =========================================================
+   BASIC
+========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+}
+
+body {
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background: #202020;
+
+    color: white;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.header {
+
+    height: 58px;
+
+    background: #111111;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding: 0 18px;
+
+    border-bottom: 1px solid #333;
+
+    position: relative;
+
+    z-index: 20;
+}
+
+
+.book-title {
+
+    font-size: 19px;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+}
+
+
+.header-right {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+}
+
+
+.icon-button {
+
+    width: 38px;
+
+    height: 36px;
+
+    border: 0;
+
+    border-radius: 5px;
+
+    background: #292929;
+
+    color: white;
+
+    cursor: pointer;
+
+    font-size: 18px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+}
+
+
+.icon-button:hover {
+
+    background: #3c3c3c;
+}
+
+
+/* =========================================================
+   VIEWER
+========================================================= */
+
+.viewer {
+
+    position: absolute;
+
+    top: 58px;
+
+    bottom: 65px;
+
+    left: 0;
+
+    right: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    overflow: hidden;
+
+    padding: 15px;
+}
+
+
+/* Book wrapper */
+
+.book-wrapper {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    width: 100%;
+
+    height: 100%;
+
+    transition: transform 0.25s ease;
+
+}
+
+
+/* PageFlip container */
+
+#book {
+
+    margin: auto;
+}
+
+
+/* =========================================================
+   PDF PAGE
+========================================================= */
+
+.page {
+
+    background: white;
+
+    overflow: hidden;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    box-shadow:
+        0 2px 8px rgba(0,0,0,0.5);
+}
+
+
+.page canvas {
+
+    width: 100%;
+
+    height: 100%;
+
+    display: block;
+
+    object-fit: contain;
+
+}
+
+
+/* =========================================================
+   BOTTOM TOOLBAR
+========================================================= */
+
+.toolbar {
+
+    position: absolute;
+
+    left: 0;
+
+    right: 0;
+
+    bottom: 0;
+
+    height: 65px;
+
+    background: #111111;
+
+    border-top: 1px solid #333;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    z-index: 20;
+}
+
+
+.toolbar-inner {
+
+    width: 100%;
+
+    max-width: 1000px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    padding: 0 12px;
+}
+
+
+/* Toolbar buttons */
+
+.control-button {
+
+    height: 38px;
+
+    min-width: 40px;
+
+    padding: 0 12px;
+
+    border: 1px solid #444;
+
+    border-radius: 5px;
+
+    background: #292929;
+
+    color: white;
+
+    cursor: pointer;
+
+    font-size: 14px;
+}
+
+
+.control-button:hover {
+
+    background: #404040;
+}
+
+
+/* Page input */
+
+.page-input {
+
+    width: 55px;
+
+    height: 36px;
+
+    border: 1px solid #555;
+
+    border-radius: 5px;
+
+    background: #222;
+
+    color: white;
+
+    text-align: center;
+
+    font-size: 14px;
+}
+
+
+.page-total {
+
+    font-size: 14px;
+
+    color: #ccc;
+
+    margin-right: 8px;
+}
+
+
+/* Zoom percentage */
+
+.zoom-value {
+
+    min-width: 48px;
+
+    text-align: center;
+
+    font-size: 13px;
+
+    color: #ccc;
+}
+
+
+/* =========================================================
+   PROGRESS BAR
+========================================================= */
+
+.progress-container {
+
+    position: absolute;
+
+    left: 0;
+
+    right: 0;
+
+    bottom: 64px;
+
+    height: 3px;
+
+    background: #333;
+
+    z-index: 25;
+}
+
+
+.progress-bar {
+
+    height: 100%;
+
+    width: 0%;
+
+    background: #ffffff;
+
+    transition: width 0.25s ease;
+}
+
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.loading {
+
+    position: fixed;
+
+    inset: 0;
+
+    background: #202020;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    z-index: 1000;
+}
+
+
+.loading-text {
+
+    font-size: 18px;
+
+    margin-bottom: 15px;
+}
+
+
+.loader {
+
+    width: 42px;
+
+    height: 42px;
+
+    border: 4px solid #444;
+
+    border-top-color: white;
+
+    border-radius: 50%;
+
+    animation: spin 1s linear infinite;
+}
+
+
+@keyframes spin {
+
+    to {
+        transform: rotate(360deg);
     }
 
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #222;
-      color: white;
-      overflow: hidden;
-    }
+}
 
-    /* Header */
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+.error {
+
+    display: none;
+
+    position: fixed;
+
+    inset: 0;
+
+    background: #202020;
+
+    align-items: center;
+
+    justify-content: center;
+
+    flex-direction: column;
+
+    z-index: 1001;
+
+    padding: 20px;
+
+    text-align: center;
+}
+
+
+.error h2 {
+
+    margin-bottom: 10px;
+}
+
+
+.error p {
+
+    color: #bbb;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
     .header {
-      height: 60px;
-      background: #111;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-    }
 
-    .title {
-      font-size: 20px;
-      font-weight: bold;
-    }
-
-    /* Main viewer */
-    .viewer {
-      height: calc(100vh - 110px);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-      padding: 20px;
-    }
-
-    #book {
-      margin: auto;
-    }
-
-    /* Bottom controls */
-    .controls {
-      height: 50px;
-      background: #111;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-    }
-
-    button {
-      background: #333;
-      border: 1px solid #555;
-      color: white;
-      padding: 8px 14px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    button:hover {
-      background: #555;
-    }
-
-    #pageInfo {
-      min-width: 100px;
-      text-align: center;
-    }
-
-    /* Loading */
-    #loading {
-      position: fixed;
-      inset: 0;
-      background: #222;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 20px;
-      z-index: 1000;
-    }
-
-    /* Mobile */
-    @media (max-width: 700px) {
-
-      .header {
         height: 50px;
-      }
 
-      .title {
+        padding: 0 10px;
+    }
+
+
+    .book-title {
+
         font-size: 16px;
-      }
-
-      .viewer {
-        height: calc(100vh - 100px);
-        padding: 5px;
-      }
-
-      .controls {
-        height: 50px;
-      }
-
-      button {
-        padding: 7px 10px;
-        font-size: 13px;
-      }
     }
-  </style>
+
+
+    .viewer {
+
+        top: 50px;
+
+        bottom: 58px;
+
+        padding: 5px;
+    }
+
+
+    .toolbar {
+
+        height: 58px;
+    }
+
+
+    .toolbar-inner {
+
+        gap: 4px;
+
+        padding: 0 5px;
+    }
+
+
+    .control-button {
+
+        min-width: 34px;
+
+        height: 34px;
+
+        padding: 0 7px;
+
+        font-size: 12px;
+    }
+
+
+    .page-input {
+
+        width: 45px;
+
+        height: 34px;
+    }
+
+
+    .page-total {
+
+        margin-right: 2px;
+
+        font-size: 12px;
+    }
+
+
+    .zoom-value {
+
+        display: none;
+    }
+
+
+    .progress-container {
+
+        bottom: 57px;
+    }
+
+}
+
+
+/* =========================================================
+   VERY SMALL SCREENS
+========================================================= */
+
+@media (max-width: 420px) {
+
+    .hide-mobile {
+
+        display: none;
+    }
+
+}
+
+</style>
+
 </head>
+
 
 <body>
 
-  <div id="loading">
-    Loading Flipbook...
-  </div>
 
-  <header class="header">
-    <div class="title">
-      My Digital Flipbook
+<!-- =====================================================
+     LOADING
+===================================================== -->
+
+<div class="loading" id="loading">
+
+    <div class="loading-text">
+        Loading Flipbook...
     </div>
-  </header>
 
-  <main class="viewer">
-    <div id="book"></div>
-  </main>
+    <div class="loader"></div>
 
-  <div class="controls">
-
-    <button onclick="previousPage()">
-      ◀ Previous
-    </button>
-
-    <span id="pageInfo">
-      Page 0 / 0
-    </span>
-
-    <button onclick="nextPage()">
-      Next ▶
-    </button>
-
-  </div>
-
-  <script>
-
-    /*
-     * --------------------------------------------------
-     * PDF FILE
-     * --------------------------------------------------
-     *
-     * For our first test we will use a sample PDF.
-     *
-     * Later we will replace this with:
-     *
-     * Google Drive PDF
-     * or
-     * PDF stored in your GitHub repository.
-     */
-
-    const PDF_URL =
-      "https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf";
+</div>
 
 
-    /*
-     * PDF.js worker
-     */
+<!-- =====================================================
+     ERROR
+===================================================== -->
 
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+<div class="error" id="error">
+
+    <h2>Unable to load the PDF</h2>
+
+    <p id="errorMessage">
+        Please check the PDF file and try again.
+    </p>
+
+</div>
 
 
-    let pdfDocument = null;
-    let flipbook = null;
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header class="header">
+
+    <div class="book-title">
+        My Digital Flipbook
+    </div>
 
 
-    /*
-     * Load PDF
-     */
+    <div class="header-right">
 
-    async function loadPDF() {
+        <button
+            class="icon-button"
+            onclick="toggleFullscreen()"
+            title="Fullscreen">
 
-      try {
+            ⛶
+
+        </button>
+
+    </div>
+
+</header>
+
+
+<!-- =====================================================
+     VIEWER
+===================================================== -->
+
+<main class="viewer" id="viewer">
+
+    <div class="book-wrapper" id="bookWrapper">
+
+        <div id="book"></div>
+
+    </div>
+
+</main>
+
+
+<!-- =====================================================
+     PROGRESS
+===================================================== -->
+
+<div class="progress-container">
+
+    <div
+        class="progress-bar"
+        id="progressBar">
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     TOOLBAR
+===================================================== -->
+
+<div class="toolbar">
+
+    <div class="toolbar-inner">
+
+
+        <!-- Previous -->
+
+        <button
+            class="control-button"
+            onclick="previousPage()"
+            title="Previous page">
+
+            ◀
+
+        </button>
+
+
+        <!-- Page number -->
+
+        <input
+            type="number"
+            id="pageInput"
+            class="page-input"
+            min="1"
+            value="1"
+            onchange="goToEnteredPage()">
+
+
+        <span class="page-total">
+
+            / <span id="totalPages">0</span>
+
+        </span>
+
+
+        <!-- Next -->
+
+        <button
+            class="control-button"
+            onclick="nextPage()"
+            title="Next page">
+
+            ▶
+
+        </button>
+
+
+        <!-- Separator -->
+
+        <span class="hide-mobile"
+              style="width:10px;">
+        </span>
+
+
+        <!-- Zoom out -->
+
+        <button
+            class="control-button"
+            onclick="zoomOut()"
+            title="Zoom out">
+
+            −
+
+        </button>
+
+
+        <span
+            class="zoom-value"
+            id="zoomValue">
+
+            100%
+
+        </span>
+
+
+        <!-- Zoom in -->
+
+        <button
+            class="control-button"
+            onclick="zoomIn()"
+            title="Zoom in">
+
+            +
+
+        </button>
+
+
+        <!-- Fullscreen -->
+
+        <button
+            class="control-button hide-mobile"
+            onclick="toggleFullscreen()"
+            title="Fullscreen">
+
+            ⛶ Fullscreen
+
+        </button>
+
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+/* =========================================================
+   PDF SETTINGS
+========================================================= */
+
+
+/*
+ * SAMPLE PDF
+ *
+ * We will replace this later with YOUR PDF.
+ */
+
+const PDF_URL =
+    "https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf";
+
+
+/*
+ * PDF.js worker
+ */
+
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+
+/* =========================================================
+   VARIABLES
+========================================================= */
+
+let pdfDocument = null;
+
+let flipbook = null;
+
+let currentPage = 1;
+
+let zoomLevel = 1;
+
+
+/* =========================================================
+   LOAD PDF
+========================================================= */
+
+async function loadPDF() {
+
+    try {
 
         pdfDocument =
-          await pdfjsLib.getDocument(PDF_URL).promise;
+            await pdfjsLib.getDocument(PDF_URL).promise;
 
-        console.log(
-          "PDF pages:",
-          pdfDocument.numPages
-        );
+
+        document.getElementById("totalPages")
+            .innerText =
+            pdfDocument.numPages;
+
 
         await createFlipbook();
 
-        document.getElementById("loading").style.display =
-          "none";
 
-      } catch (error) {
+        document.getElementById("loading")
+            .style.display = "none";
+
+
+        /*
+         * Check URL for page number
+         *
+         * Example:
+         *
+         * #p=20
+         */
+
+        loadPageFromURL();
+
+
+    }
+    catch (error) {
 
         console.error(error);
 
-        document.getElementById("loading").innerHTML =
-          "Unable to load PDF";
 
-      }
+        document.getElementById("loading")
+            .style.display = "none";
+
+
+        document.getElementById("error")
+            .style.display = "flex";
+
+
+        document.getElementById("errorMessage")
+            .innerText =
+            error.message ||
+            "Unknown PDF loading error.";
 
     }
 
+}
 
-    /*
-     * Create flipbook
-     */
 
-    async function createFlipbook() {
+/* =========================================================
+   CREATE FLIPBOOK
+========================================================= */
 
-      const bookElement =
+async function createFlipbook() {
+
+
+    const bookElement =
         document.getElementById("book");
 
 
-      /*
-       * Create PageFlip
-       */
+    /*
+     * Create PageFlip
+     */
 
-      flipbook = new St.PageFlip(
-        bookElement,
-        {
+    flipbook =
+        new St.PageFlip(
 
-          width: 450,
+            bookElement,
 
-          height: 600,
+            {
 
-          size: "stretch",
+                width: 450,
 
-          minWidth: 250,
+                height: 600,
 
-          maxWidth: 900,
+                size: "stretch",
 
-          minHeight: 350,
+                minWidth: 280,
 
-          maxHeight: 1200,
+                maxWidth: 900,
 
-          maxShadowOpacity: 0.5,
+                minHeight: 350,
 
-          showCover: true,
+                maxHeight: 1200,
 
-          mobileScrollSupport: true
+                maxShadowOpacity: 0.5,
 
-        }
-      );
+                showCover: true,
+
+                mobileScrollSupport: true,
+
+                useMouseEvents: true,
+
+                flippingTime: 800
+
+            }
+
+        );
 
 
-      /*
-       * Generate pages
-       */
-
-      const pages = [];
+    const pages = [];
 
 
-      for (
+    /*
+     * Render every PDF page
+     */
+
+    for (
+
         let pageNumber = 1;
+
         pageNumber <= pdfDocument.numPages;
+
         pageNumber++
-      ) {
 
-        const page =
-          await pdfDocument.getPage(pageNumber);
+    ) {
 
+
+        const pdfPage =
+            await pdfDocument.getPage(pageNumber);
+
+
+        /*
+         * Render quality
+         */
 
         const viewport =
-          page.getViewport({
-            scale: 1.5
-          });
+            pdfPage.getViewport({
+                scale: 1.5
+            });
 
 
         const canvas =
-          document.createElement("canvas");
+            document.createElement("canvas");
 
 
         canvas.width =
-          viewport.width;
+            viewport.width;
+
 
         canvas.height =
-          viewport.height;
+            viewport.height;
 
 
         const context =
-          canvas.getContext("2d");
+            canvas.getContext("2d");
 
 
-        await page.render({
+        await pdfPage.render({
 
-          canvasContext: context,
+            canvasContext: context,
 
-          viewport: viewport
+            viewport: viewport
 
         }).promise;
 
 
         /*
-         * Create page element
+         * Page container
          */
 
         const pageElement =
-          document.createElement("div");
+            document.createElement("div");
 
 
         pageElement.className =
-          "page";
+            "page";
 
 
-        pageElement.style.background =
-          "#ffffff";
+        pageElement.dataset.page =
+            pageNumber;
 
 
         pageElement.appendChild(canvas);
@@ -330,85 +1008,398 @@
 
         pages.push(pageElement);
 
-      }
-
-
-      /*
-       * Load pages
-       */
-
-      flipbook.loadFromHTML(pages);
-
-
-      /*
-       * Page changed
-       */
-
-      flipbook.on(
-        "flip",
-        function (event) {
-
-          updatePageNumber(
-            event.data + 1
-          );
-
-        }
-      );
-
-
-      updatePageNumber(1);
-
     }
 
 
     /*
-     * Page navigation
+     * Load pages
      */
 
-    function nextPage() {
+    flipbook.loadFromHTML(pages);
 
-      if (flipbook) {
+
+    /*
+     * Flip event
+     */
+
+    flipbook.on(
+
+        "flip",
+
+        function(event) {
+
+            currentPage =
+                event.data + 1;
+
+
+            updatePageDisplay();
+
+            updateURL();
+
+        }
+
+    );
+
+
+    updatePageDisplay();
+
+}
+
+
+/* =========================================================
+   PAGE DISPLAY
+========================================================= */
+
+function updatePageDisplay() {
+
+
+    document.getElementById("pageInput")
+        .value = currentPage;
+
+
+    /*
+     * Progress percentage
+     */
+
+    const total =
+        pdfDocument.numPages;
+
+
+    const percentage =
+        (currentPage / total) * 100;
+
+
+    document.getElementById("progressBar")
+        .style.width =
+        percentage + "%";
+
+}
+
+
+/* =========================================================
+   NEXT PAGE
+========================================================= */
+
+function nextPage() {
+
+    if (!flipbook) return;
+
+    if (
+        currentPage <
+        pdfDocument.numPages
+    ) {
 
         flipbook.flipNext();
 
-      }
-
     }
 
+}
 
-    function previousPage() {
 
-      if (flipbook) {
+/* =========================================================
+   PREVIOUS PAGE
+========================================================= */
+
+function previousPage() {
+
+    if (!flipbook) return;
+
+    if (currentPage > 1) {
 
         flipbook.flipPrev();
 
-      }
+    }
+
+}
+
+
+/* =========================================================
+   GO TO PAGE
+========================================================= */
+
+function goToEnteredPage() {
+
+
+    if (!flipbook) return;
+
+
+    let page =
+        parseInt(
+            document.getElementById("pageInput").value
+        );
+
+
+    if (isNaN(page)) {
+
+        page = currentPage;
 
     }
 
 
     /*
-     * Page number
+     * Keep within limits
      */
 
-    function updatePageNumber(page) {
+    page =
+        Math.max(
+            1,
+            Math.min(
+                page,
+                pdfDocument.numPages
+            )
+        );
 
-      document.getElementById("pageInfo").innerText =
-        "Page " +
-        page +
-        " / " +
-        pdfDocument.numPages;
+
+    currentPage = page;
+
+
+    /*
+     * PageFlip uses zero-based page index
+     */
+
+    flipbook.turnToPage(page - 1);
+
+
+    updatePageDisplay();
+
+    updateURL();
+
+}
+
+
+/* =========================================================
+   URL PAGE SUPPORT
+========================================================= */
+
+function updateURL() {
+
+    history.replaceState(
+        null,
+        "",
+        "#p=" + currentPage
+    );
+
+}
+
+
+function loadPageFromURL() {
+
+
+    const hash =
+        window.location.hash;
+
+
+    const match =
+        hash.match(/p=(\d+)/);
+
+
+    if (!match) return;
+
+
+    let page =
+        parseInt(match[1]);
+
+
+    if (isNaN(page)) return;
+
+
+    page =
+        Math.max(
+            1,
+            Math.min(
+                page,
+                pdfDocument.numPages
+            )
+        );
+
+
+    currentPage = page;
+
+
+    setTimeout(
+
+        function() {
+
+            if (flipbook) {
+
+                flipbook.turnToPage(
+                    page - 1
+                );
+
+                updatePageDisplay();
+
+            }
+
+        },
+
+        500
+
+    );
+
+}
+
+
+/* =========================================================
+   ZOOM
+========================================================= */
+
+function zoomIn() {
+
+    zoomLevel += 0.1;
+
+
+    if (zoomLevel > 2) {
+
+        zoomLevel = 2;
 
     }
 
 
-    /*
-     * Start
-     */
+    applyZoom();
 
-    loadPDF();
+}
 
-  </script>
+
+function zoomOut() {
+
+    zoomLevel -= 0.1;
+
+
+    if (zoomLevel < 0.7) {
+
+        zoomLevel = 0.7;
+
+    }
+
+
+    applyZoom();
+
+}
+
+
+function applyZoom() {
+
+
+    const wrapper =
+        document.getElementById("bookWrapper");
+
+
+    wrapper.style.transform =
+        "scale(" + zoomLevel + ")";
+
+
+    document.getElementById("zoomValue")
+        .innerText =
+        Math.round(zoomLevel * 100) +
+        "%";
+
+}
+
+
+/* =========================================================
+   FULLSCREEN
+========================================================= */
+
+function toggleFullscreen() {
+
+
+    const viewer =
+        document.documentElement;
+
+
+    if (!document.fullscreenElement) {
+
+        viewer.requestFullscreen()
+            .catch(
+                error =>
+                console.log(error)
+            );
+
+    }
+    else {
+
+        document.exitFullscreen();
+
+    }
+
+}
+
+
+/* =========================================================
+   KEYBOARD CONTROLS
+========================================================= */
+
+document.addEventListener(
+
+    "keydown",
+
+    function(event) {
+
+
+        /*
+         * Don't interfere with page input
+         */
+
+        if (
+            event.target.tagName ===
+            "INPUT"
+        ) {
+
+            return;
+
+        }
+
+
+        if (
+            event.key === "ArrowRight"
+        ) {
+
+            nextPage();
+
+        }
+
+
+        if (
+            event.key === "ArrowLeft"
+        ) {
+
+            previousPage();
+
+        }
+
+
+        if (
+            event.key === "+"
+            ||
+            event.key === "="
+        ) {
+
+            zoomIn();
+
+        }
+
+
+        if (
+            event.key === "-"
+        ) {
+
+            zoomOut();
+
+        }
+
+    }
+
+);
+
+
+/* =========================================================
+   START
+========================================================= */
+
+loadPDF();
+
+</script>
 
 </body>
+
 </html>
