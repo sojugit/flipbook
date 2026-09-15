@@ -39,6 +39,7 @@ body {
 .icon-button:hover { background:#3c3c3c; }
 
 .viewer {
+    cursor:default;
     position:absolute;
     top:58px; bottom:65px; left:0; right:0;
     display:flex; align-items:center; justify-content:center;
@@ -58,6 +59,8 @@ body {
 }
 
 #book { margin:0; flex:0 0 auto; }
+.viewer.zoomed { cursor:grab; }
+.viewer.panning { cursor:grabbing; }
 
 .page {
     background:white;
@@ -189,6 +192,10 @@ let manualZoom = false;
 let pageWidth = 600;
 let pageHeight = 800;
 
+let panX = 0, panY = 0;
+let isPanning = false, panStartX = 0, panStartY = 0, panOriginX = 0, panOriginY = 0;
+let wheelLock = false;
+
 async function loadPDF() {
     try {
         pdfDocument = await pdfjsLib.getDocument(PDF_URL).promise;
@@ -287,8 +294,8 @@ function calculateFitScale() {
 
 function fitToPage() {
     if (!flipbook) return;
-
     manualZoom = false;
+    panX = 0; panY = 0;
     fitScale = calculateFitScale();
     zoomLevel = fitScale;
     applyZoom();
@@ -296,29 +303,70 @@ function fitToPage() {
 
 function applyZoom() {
     const wrapper = document.getElementById("bookWrapper");
-    wrapper.style.width = (pageWidth * ((currentPage === 1) ? 1 : 2)) + "px";
+    const visiblePages = (currentPage === 1) ? 1 : 2;
+    wrapper.style.width = (pageWidth * visiblePages) + "px";
     wrapper.style.height = pageHeight + "px";
-    wrapper.style.transform = "scale(" + zoomLevel + ")";
-
+    if (!manualZoom) { panX = 0; panY = 0; }
+    wrapper.style.transform = "translate(" + panX + "px, " + panY + "px) scale(" + zoomLevel + ")";
     const percent = Math.round((zoomLevel / fitScale) * 100);
-    document.getElementById("zoomValue").innerText =
-        manualZoom ? percent + "%" : "Fit";
+    document.getElementById("zoomValue").innerText = manualZoom ? percent + "%" : "Fit";
+    document.getElementById("viewer").classList.toggle("zoomed", manualZoom);
 }
 
 function zoomIn() {
     if (!flipbook) return;
-    if (!manualZoom) zoomLevel = fitScale;
-    manualZoom = true;
+    if (!manualZoom) { zoomLevel = fitScale; manualZoom = true; }
     zoomLevel = Math.min(zoomLevel + 0.1, 2.5);
     applyZoom();
 }
 
 function zoomOut() {
     if (!flipbook) return;
-    if (!manualZoom) zoomLevel = fitScale;
-    manualZoom = true;
+    if (!manualZoom) { zoomLevel = fitScale; manualZoom = true; }
     zoomLevel = Math.max(zoomLevel - 0.1, 0.3);
+    if (zoomLevel <= fitScale + 0.001) { fitToPage(); return; }
     applyZoom();
+}
+
+function handleWheel(event) {
+    if (!flipbook || !pdfDocument) return;
+    event.preventDefault();
+    if (wheelLock) return;
+    wheelLock = true;
+    setTimeout(() => wheelLock = false, manualZoom ? 60 : 500);
+    if (manualZoom) {
+        if (event.deltaY < 0) zoomIn();
+        else if (event.deltaY > 0) zoomOut();
+    } else {
+        if (event.deltaY > 0) nextPage();
+        else if (event.deltaY < 0) previousPage();
+    }
+}
+
+function startPan(event) {
+    if (!manualZoom || event.button !== 0) return;
+    isPanning = true;
+    panStartX = event.clientX; panStartY = event.clientY;
+    panOriginX = panX; panOriginY = panY;
+    document.getElementById("viewer").classList.add("panning");
+    event.preventDefault();
+    event.stopPropagation();
+}
+
+function movePan(event) {
+    if (!isPanning) return;
+    panX = panOriginX + event.clientX - panStartX;
+    panY = panOriginY + event.clientY - panStartY;
+    applyZoom();
+    event.preventDefault();
+    event.stopPropagation();
+}
+
+function endPan(event) {
+    if (!isPanning) return;
+    isPanning = false;
+    document.getElementById("viewer").classList.remove("panning");
+    if (event) { event.preventDefault(); event.stopPropagation(); }
 }
 
 function updatePageDisplay() {
@@ -395,6 +443,14 @@ document.addEventListener("keydown", function(event) {
     if (event.key === "-") zoomOut();
     if (event.key === "0") fitToPage();
 });
+
+const viewer = document.getElementById("viewer");
+viewer.addEventListener("wheel", handleWheel, {passive:false});
+viewer.addEventListener("mousedown", startPan, true);
+viewer.addEventListener("mousemove", movePan, true);
+viewer.addEventListener("mouseup", endPan, true);
+viewer.addEventListener("mouseleave", endPan, true);
+viewer.addEventListener("dragstart", function(e){ if(manualZoom) e.preventDefault(); }, true);
 
 loadPDF();
 </script>
