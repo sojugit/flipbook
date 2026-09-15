@@ -1,1405 +1,402 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
-
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Digital Flipbook</title>
 
-
-<!-- PDF.js -->
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-
-
-<!-- PageFlip -->
-
 <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js"></script>
 
-
 <style>
-
-/* =========================================================
-   BASIC
-========================================================= */
-
-* {
-    box-sizing: border-box;
-}
-
-html,
+* { box-sizing: border-box; }
+html, body { margin:0; padding:0; width:100%; height:100%; }
 body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
+    font-family: Arial, Helvetica, sans-serif;
+    background:#202020;
+    color:white;
+    overflow:hidden;
 }
-
-body {
-
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-
-    background: #202020;
-
-    color: white;
-
-    overflow: hidden;
-}
-
-
-/* =========================================================
-   HEADER
-========================================================= */
 
 .header {
-
-    height: 58px;
-
-    background: #111111;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    padding: 0 18px;
-
-    border-bottom: 1px solid #333;
-
-    position: relative;
-
-    z-index: 20;
+    height:58px;
+    background:#111;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 18px;
+    border-bottom:1px solid #333;
+    position:relative;
+    z-index:20;
 }
-
-
-.book-title {
-
-    font-size: 19px;
-
-    font-weight: 600;
-
-    white-space: nowrap;
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-}
-
-
-.header-right {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 8px;
-}
-
-
+.book-title { font-size:19px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.header-right { display:flex; align-items:center; gap:8px; }
 .icon-button {
-
-    width: 38px;
-
-    height: 36px;
-
-    border: 0;
-
-    border-radius: 5px;
-
-    background: #292929;
-
-    color: white;
-
-    cursor: pointer;
-
-    font-size: 18px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
+    width:38px; height:36px; border:0; border-radius:5px;
+    background:#292929; color:white; cursor:pointer; font-size:18px;
+    display:flex; align-items:center; justify-content:center;
 }
-
-
-.icon-button:hover {
-
-    background: #3c3c3c;
-}
-
-
-/* =========================================================
-   VIEWER
-========================================================= */
+.icon-button:hover { background:#3c3c3c; }
 
 .viewer {
-
-    position: absolute;
-
-    top: 58px;
-
-    bottom: 65px;
-
-    left: 0;
-
-    right: 0;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    overflow: hidden;
-
-    padding: 15px;
+    position:absolute;
+    top:58px; bottom:65px; left:0; right:0;
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+    padding:10px;
 }
 
-
-/* Book wrapper */
-
+/* The wrapper is deliberately NOT stretched to the viewer.
+   JavaScript calculates the correct fit scale. */
 .book-wrapper {
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    width: 100%;
-
-    height: 100%;
-
-    transition: transform 0.25s ease;
-
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transform-origin:center center;
+    flex:0 0 auto;
+    transition:transform .18s ease;
 }
 
-
-/* PageFlip container */
-
-#book {
-
-    margin: auto;
-}
-
-
-/* =========================================================
-   PDF PAGE
-========================================================= */
+#book { margin:0; flex:0 0 auto; }
 
 .page {
-
-    background: white;
-
-    overflow: hidden;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    box-shadow:
-        0 2px 8px rgba(0,0,0,0.5);
+    background:white;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 2px 8px rgba(0,0,0,.5);
 }
-
-
 .page canvas {
-
-    width: 100%;
-
-    height: 100%;
-
-    display: block;
-
-    object-fit: contain;
-
+    width:100%; height:100%; display:block;
+    object-fit:contain;
 }
-
-
-/* =========================================================
-   BOTTOM TOOLBAR
-========================================================= */
 
 .toolbar {
-
-    position: absolute;
-
-    left: 0;
-
-    right: 0;
-
-    bottom: 0;
-
-    height: 65px;
-
-    background: #111111;
-
-    border-top: 1px solid #333;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    z-index: 20;
+    position:absolute; left:0; right:0; bottom:0;
+    height:65px; background:#111; border-top:1px solid #333;
+    display:flex; align-items:center; justify-content:center; z-index:20;
 }
-
-
 .toolbar-inner {
-
-    width: 100%;
-
-    max-width: 1000px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 8px;
-
-    padding: 0 12px;
+    width:100%; max-width:1000px; display:flex;
+    align-items:center; justify-content:center; gap:8px; padding:0 12px;
 }
-
-
-/* Toolbar buttons */
-
 .control-button {
-
-    height: 38px;
-
-    min-width: 40px;
-
-    padding: 0 12px;
-
-    border: 1px solid #444;
-
-    border-radius: 5px;
-
-    background: #292929;
-
-    color: white;
-
-    cursor: pointer;
-
-    font-size: 14px;
+    height:38px; min-width:40px; padding:0 12px;
+    border:1px solid #444; border-radius:5px;
+    background:#292929; color:white; cursor:pointer; font-size:14px;
 }
-
-
-.control-button:hover {
-
-    background: #404040;
-}
-
-
-/* Page input */
-
+.control-button:hover { background:#404040; }
 .page-input {
-
-    width: 55px;
-
-    height: 36px;
-
-    border: 1px solid #555;
-
-    border-radius: 5px;
-
-    background: #222;
-
-    color: white;
-
-    text-align: center;
-
-    font-size: 14px;
+    width:55px; height:36px; border:1px solid #555; border-radius:5px;
+    background:#222; color:white; text-align:center; font-size:14px;
 }
-
-
-.page-total {
-
-    font-size: 14px;
-
-    color: #ccc;
-
-    margin-right: 8px;
-}
-
-
-/* Zoom percentage */
-
-.zoom-value {
-
-    min-width: 48px;
-
-    text-align: center;
-
-    font-size: 13px;
-
-    color: #ccc;
-}
-
-
-/* =========================================================
-   PROGRESS BAR
-========================================================= */
+.page-total { font-size:14px; color:#ccc; margin-right:8px; }
+.zoom-value { min-width:58px; text-align:center; font-size:13px; color:#ccc; }
 
 .progress-container {
-
-    position: absolute;
-
-    left: 0;
-
-    right: 0;
-
-    bottom: 64px;
-
-    height: 3px;
-
-    background: #333;
-
-    z-index: 25;
+    position:absolute; left:0; right:0; bottom:64px; height:3px;
+    background:#333; z-index:25;
 }
-
-
-.progress-bar {
-
-    height: 100%;
-
-    width: 0%;
-
-    background: #ffffff;
-
-    transition: width 0.25s ease;
-}
-
-
-/* =========================================================
-   LOADING
-========================================================= */
+.progress-bar { height:100%; width:0%; background:#fff; transition:width .25s ease; }
 
 .loading {
-
-    position: fixed;
-
-    inset: 0;
-
-    background: #202020;
-
-    display: flex;
-
-    flex-direction: column;
-
-    align-items: center;
-
-    justify-content: center;
-
-    z-index: 1000;
+    position:fixed; inset:0; background:#202020; display:flex;
+    flex-direction:column; align-items:center; justify-content:center; z-index:1000;
 }
-
-
-.loading-text {
-
-    font-size: 18px;
-
-    margin-bottom: 15px;
-}
-
-
+.loading-text { font-size:18px; margin-bottom:15px; }
 .loader {
-
-    width: 42px;
-
-    height: 42px;
-
-    border: 4px solid #444;
-
-    border-top-color: white;
-
-    border-radius: 50%;
-
-    animation: spin 1s linear infinite;
+    width:42px; height:42px; border:4px solid #444;
+    border-top-color:white; border-radius:50%; animation:spin 1s linear infinite;
 }
-
-
-@keyframes spin {
-
-    to {
-        transform: rotate(360deg);
-    }
-
-}
-
-
-/* =========================================================
-   ERROR
-========================================================= */
+@keyframes spin { to { transform:rotate(360deg); } }
 
 .error {
-
-    display: none;
-
-    position: fixed;
-
-    inset: 0;
-
-    background: #202020;
-
-    align-items: center;
-
-    justify-content: center;
-
-    flex-direction: column;
-
-    z-index: 1001;
-
-    padding: 20px;
-
-    text-align: center;
+    display:none; position:fixed; inset:0; background:#202020;
+    align-items:center; justify-content:center; flex-direction:column;
+    z-index:1001; padding:20px; text-align:center;
 }
+.error h2 { margin-bottom:10px; }
+.error p { color:#bbb; }
 
-
-.error h2 {
-
-    margin-bottom: 10px;
+@media (max-width:700px) {
+    .header { height:50px; padding:0 10px; }
+    .book-title { font-size:16px; }
+    .viewer { top:50px; bottom:58px; padding:5px; }
+    .toolbar { height:58px; }
+    .toolbar-inner { gap:4px; padding:0 5px; }
+    .control-button { min-width:34px; height:34px; padding:0 7px; font-size:12px; }
+    .page-input { width:45px; height:34px; }
+    .page-total { margin-right:2px; font-size:12px; }
+    .zoom-value { display:none; }
+    .progress-container { bottom:57px; }
 }
-
-
-.error p {
-
-    color: #bbb;
-}
-
-
-/* =========================================================
-   MOBILE
-========================================================= */
-
-@media (max-width: 700px) {
-
-    .header {
-
-        height: 50px;
-
-        padding: 0 10px;
-    }
-
-
-    .book-title {
-
-        font-size: 16px;
-    }
-
-
-    .viewer {
-
-        top: 50px;
-
-        bottom: 58px;
-
-        padding: 5px;
-    }
-
-
-    .toolbar {
-
-        height: 58px;
-    }
-
-
-    .toolbar-inner {
-
-        gap: 4px;
-
-        padding: 0 5px;
-    }
-
-
-    .control-button {
-
-        min-width: 34px;
-
-        height: 34px;
-
-        padding: 0 7px;
-
-        font-size: 12px;
-    }
-
-
-    .page-input {
-
-        width: 45px;
-
-        height: 34px;
-    }
-
-
-    .page-total {
-
-        margin-right: 2px;
-
-        font-size: 12px;
-    }
-
-
-    .zoom-value {
-
-        display: none;
-    }
-
-
-    .progress-container {
-
-        bottom: 57px;
-    }
-
-}
-
-
-/* =========================================================
-   VERY SMALL SCREENS
-========================================================= */
-
-@media (max-width: 420px) {
-
-    .hide-mobile {
-
-        display: none;
-    }
-
-}
-
+@media (max-width:420px) { .hide-mobile { display:none; } }
 </style>
-
 </head>
 
-
 <body>
-
-
-<!-- =====================================================
-     LOADING
-===================================================== -->
-
 <div class="loading" id="loading">
-
-    <div class="loading-text">
-        Loading Flipbook...
-    </div>
-
+    <div class="loading-text">Loading Flipbook...</div>
     <div class="loader"></div>
-
 </div>
-
-
-<!-- =====================================================
-     ERROR
-===================================================== -->
 
 <div class="error" id="error">
-
     <h2>Unable to load the PDF</h2>
-
-    <p id="errorMessage">
-        Please check the PDF file and try again.
-    </p>
-
+    <p id="errorMessage">Please check the PDF file and try again.</p>
 </div>
-
-
-<!-- =====================================================
-     HEADER
-===================================================== -->
 
 <header class="header">
-
-    <div class="book-title">
-        My Digital Flipbook
-    </div>
-
-
+    <div class="book-title">My Digital Flipbook</div>
     <div class="header-right">
-
-        <button
-            class="icon-button"
-            onclick="toggleFullscreen()"
-            title="Fullscreen">
-
-            ⛶
-
-        </button>
-
+        <button class="icon-button" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
     </div>
-
 </header>
 
-
-<!-- =====================================================
-     VIEWER
-===================================================== -->
-
 <main class="viewer" id="viewer">
-
     <div class="book-wrapper" id="bookWrapper">
-
         <div id="book"></div>
-
     </div>
-
 </main>
 
-
-<!-- =====================================================
-     PROGRESS
-===================================================== -->
-
-<div class="progress-container">
-
-    <div
-        class="progress-bar"
-        id="progressBar">
-    </div>
-
-</div>
-
-
-<!-- =====================================================
-     TOOLBAR
-===================================================== -->
+<div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
 
 <div class="toolbar">
-
     <div class="toolbar-inner">
-
-
-        <!-- Previous -->
-
-        <button
-            class="control-button"
-            onclick="previousPage()"
-            title="Previous page">
-
-            ◀
-
-        </button>
-
-
-        <!-- Page number -->
-
-        <input
-            type="number"
-            id="pageInput"
-            class="page-input"
-            min="1"
-            value="1"
-            onchange="goToEnteredPage()">
-
-
-        <span class="page-total">
-
-            / <span id="totalPages">0</span>
-
-        </span>
-
-
-        <!-- Next -->
-
-        <button
-            class="control-button"
-            onclick="nextPage()"
-            title="Next page">
-
-            ▶
-
-        </button>
-
-
-        <!-- Separator -->
-
-        <span class="hide-mobile"
-              style="width:10px;">
-        </span>
-
-
-        <!-- Zoom out -->
-
-        <button
-            class="control-button"
-            onclick="zoomOut()"
-            title="Zoom out">
-
-            −
-
-        </button>
-
-
-        <span
-            class="zoom-value"
-            id="zoomValue">
-
-            100%
-
-        </span>
-
-
-        <!-- Zoom in -->
-
-        <button
-            class="control-button"
-            onclick="zoomIn()"
-            title="Zoom in">
-
-            +
-
-        </button>
-
-
-        <!-- Fullscreen -->
-
-        <button
-            class="control-button hide-mobile"
-            onclick="toggleFullscreen()"
-            title="Fullscreen">
-
-            ⛶ Fullscreen
-
-        </button>
-
-
+        <button class="control-button" onclick="previousPage()" title="Previous page">◀</button>
+        <input type="number" id="pageInput" class="page-input" min="1" value="1" onchange="goToEnteredPage()">
+        <span class="page-total">/ <span id="totalPages">0</span></span>
+        <button class="control-button" onclick="nextPage()" title="Next page">▶</button>
+        <span class="hide-mobile" style="width:10px;"></span>
+        <button class="control-button" onclick="zoomOut()" title="Zoom out">−</button>
+        <span class="zoom-value" id="zoomValue">Fit</span>
+        <button class="control-button" onclick="zoomIn()" title="Zoom in">+</button>
+        <button class="control-button hide-mobile" onclick="fitToPage()" title="Fit page">Fit</button>
+        <button class="control-button hide-mobile" onclick="toggleFullscreen()" title="Fullscreen">⛶ Fullscreen</button>
     </div>
-
 </div>
 
-
-
 <script>
-
-/* =========================================================
-   PDF SETTINGS
-========================================================= */
-
-
-/*
- * SAMPLE PDF
- *
- * We will replace this later with YOUR PDF.
- */
-
-const PDF_URL =
-    "https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf";
-
-
-/*
- * PDF.js worker
- */
-
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-
-
-/* =========================================================
-   VARIABLES
-========================================================= */
+const PDF_URL = "https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf";
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
 let pdfDocument = null;
-
 let flipbook = null;
-
 let currentPage = 1;
-
 let zoomLevel = 1;
-
-
-/* =========================================================
-   LOAD PDF
-========================================================= */
+let fitScale = 1;
+let manualZoom = false;
+let pageWidth = 600;
+let pageHeight = 800;
 
 async function loadPDF() {
-
     try {
+        pdfDocument = await pdfjsLib.getDocument(PDF_URL).promise;
+        document.getElementById("totalPages").innerText = pdfDocument.numPages;
 
-        pdfDocument =
-            await pdfjsLib.getDocument(PDF_URL).promise;
+        // Get the real PDF aspect ratio from page 1.
+        const firstPage = await pdfDocument.getPage(1);
+        const firstViewport = firstPage.getViewport({scale:1});
+        const ratio = firstViewport.width / firstViewport.height;
 
-
-        document.getElementById("totalPages")
-            .innerText =
-            pdfDocument.numPages;
-
+        // Use a comfortable internal size; fitScale handles the screen size.
+        pageHeight = 800;
+        pageWidth = Math.round(pageHeight * ratio);
 
         await createFlipbook();
-
-
-        document.getElementById("loading")
-            .style.display = "none";
-
-
-        /*
-         * Check URL for page number
-         *
-         * Example:
-         *
-         * #p=20
-         */
-
+        document.getElementById("loading").style.display = "none";
         loadPageFromURL();
-
-
-    }
-    catch (error) {
-
+        requestAnimationFrame(fitToPage);
+    } catch (error) {
         console.error(error);
-
-
-        document.getElementById("loading")
-            .style.display = "none";
-
-
-        document.getElementById("error")
-            .style.display = "flex";
-
-
-        document.getElementById("errorMessage")
-            .innerText =
-            error.message ||
-            "Unknown PDF loading error.";
-
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("error").style.display = "flex";
+        document.getElementById("errorMessage").innerText = error.message || "Unknown PDF loading error.";
     }
-
 }
 
-
-/* =========================================================
-   CREATE FLIPBOOK
-========================================================= */
-
 async function createFlipbook() {
+    const bookElement = document.getElementById("book");
 
-
-    const bookElement =
-        document.getElementById("book");
-
-
-    /*
-     * Create PageFlip
-     */
-
-    flipbook =
-        new St.PageFlip(
-
-            bookElement,
-
-            {
-
-                width: 450,
-
-                height: 600,
-
-                size: "stretch",
-
-                minWidth: 280,
-
-                maxWidth: 900,
-
-                minHeight: 350,
-
-                maxHeight: 1200,
-
-                maxShadowOpacity: 0.5,
-
-                showCover: true,
-
-                mobileScrollSupport: true,
-
-                useMouseEvents: true,
-
-                flippingTime: 800
-
-            }
-
-        );
-
+    flipbook = new St.PageFlip(bookElement, {
+        width: pageWidth,
+        height: pageHeight,
+        size: "fixed",
+        minWidth: 280,
+        maxWidth: 1200,
+        minHeight: 350,
+        maxHeight: 1600,
+        maxShadowOpacity: 0.5,
+        showCover: true,
+        mobileScrollSupport: true,
+        useMouseEvents: true,
+        flippingTime: 800,
+        drawShadow: true,
+        autoSize: false,
+        startPage: 0,
+        usePortrait: true
+    });
 
     const pages = [];
 
+    for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber++) {
+        const pdfPage = await pdfDocument.getPage(pageNumber);
+        const viewport = pdfPage.getViewport({scale:1.5});
+        const canvas = document.createElement("canvas");
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        const context = canvas.getContext("2d", {alpha:false});
+        await pdfPage.render({canvasContext:context, viewport:viewport}).promise;
 
-    /*
-     * Render every PDF page
-     */
-
-    for (
-
-        let pageNumber = 1;
-
-        pageNumber <= pdfDocument.numPages;
-
-        pageNumber++
-
-    ) {
-
-
-        const pdfPage =
-            await pdfDocument.getPage(pageNumber);
-
-
-        /*
-         * Render quality
-         */
-
-        const viewport =
-            pdfPage.getViewport({
-                scale: 1.5
-            });
-
-
-        const canvas =
-            document.createElement("canvas");
-
-
-        canvas.width =
-            viewport.width;
-
-
-        canvas.height =
-            viewport.height;
-
-
-        const context =
-            canvas.getContext("2d");
-
-
-        await pdfPage.render({
-
-            canvasContext: context,
-
-            viewport: viewport
-
-        }).promise;
-
-
-        /*
-         * Page container
-         */
-
-        const pageElement =
-            document.createElement("div");
-
-
-        pageElement.className =
-            "page";
-
-
-        pageElement.dataset.page =
-            pageNumber;
-
-
+        const pageElement = document.createElement("div");
+        pageElement.className = "page";
+        pageElement.dataset.page = pageNumber;
         pageElement.appendChild(canvas);
-
-
         pages.push(pageElement);
-
     }
-
-
-    /*
-     * Load pages
-     */
 
     flipbook.loadFromHTML(pages);
 
-
-    /*
-     * Flip event
-     */
-
-    flipbook.on(
-
-        "flip",
-
-        function(event) {
-
-            currentPage =
-                event.data + 1;
-
-
-            updatePageDisplay();
-
-            updateURL();
-
-        }
-
-    );
-
+    flipbook.on("flip", function(event) {
+        currentPage = event.data + 1;
+        updatePageDisplay();
+        updateURL();
+        if (!manualZoom) requestAnimationFrame(fitToPage);
+    });
 
     updatePageDisplay();
-
 }
 
+/*
+ * FIT-TO-PAGE
+ * Calculates the maximum size that fits inside the viewer.
+ * This is now the default instead of 100%.
+ */
+function calculateFitScale() {
+    const viewer = document.getElementById("viewer");
+    const availableWidth = Math.max(100, viewer.clientWidth - 20);
+    const availableHeight = Math.max(100, viewer.clientHeight - 20);
 
-/* =========================================================
-   PAGE DISPLAY
-========================================================= */
+    // PageFlip normally shows one page for the cover and two pages after that.
+    const visiblePages = (currentPage === 1) ? 1 : 2;
+    const bookWidth = pageWidth * visiblePages;
+    const bookHeight = pageHeight;
 
-function updatePageDisplay() {
-
-
-    document.getElementById("pageInput")
-        .value = currentPage;
-
-
-    /*
-     * Progress percentage
-     */
-
-    const total =
-        pdfDocument.numPages;
-
-
-    const percentage =
-        (currentPage / total) * 100;
-
-
-    document.getElementById("progressBar")
-        .style.width =
-        percentage + "%";
-
+    return Math.min(availableWidth / bookWidth, availableHeight / bookHeight, 1);
 }
 
-
-/* =========================================================
-   NEXT PAGE
-========================================================= */
-
-function nextPage() {
-
+function fitToPage() {
     if (!flipbook) return;
 
-    if (
-        currentPage <
-        pdfDocument.numPages
-    ) {
-
-        flipbook.flipNext();
-
-    }
-
-}
-
-
-/* =========================================================
-   PREVIOUS PAGE
-========================================================= */
-
-function previousPage() {
-
-    if (!flipbook) return;
-
-    if (currentPage > 1) {
-
-        flipbook.flipPrev();
-
-    }
-
-}
-
-
-/* =========================================================
-   GO TO PAGE
-========================================================= */
-
-function goToEnteredPage() {
-
-
-    if (!flipbook) return;
-
-
-    let page =
-        parseInt(
-            document.getElementById("pageInput").value
-        );
-
-
-    if (isNaN(page)) {
-
-        page = currentPage;
-
-    }
-
-
-    /*
-     * Keep within limits
-     */
-
-    page =
-        Math.max(
-            1,
-            Math.min(
-                page,
-                pdfDocument.numPages
-            )
-        );
-
-
-    currentPage = page;
-
-
-    /*
-     * PageFlip uses zero-based page index
-     */
-
-    flipbook.turnToPage(page - 1);
-
-
-    updatePageDisplay();
-
-    updateURL();
-
-}
-
-
-/* =========================================================
-   URL PAGE SUPPORT
-========================================================= */
-
-function updateURL() {
-
-    history.replaceState(
-        null,
-        "",
-        "#p=" + currentPage
-    );
-
-}
-
-
-function loadPageFromURL() {
-
-
-    const hash =
-        window.location.hash;
-
-
-    const match =
-        hash.match(/p=(\d+)/);
-
-
-    if (!match) return;
-
-
-    let page =
-        parseInt(match[1]);
-
-
-    if (isNaN(page)) return;
-
-
-    page =
-        Math.max(
-            1,
-            Math.min(
-                page,
-                pdfDocument.numPages
-            )
-        );
-
-
-    currentPage = page;
-
-
-    setTimeout(
-
-        function() {
-
-            if (flipbook) {
-
-                flipbook.turnToPage(
-                    page - 1
-                );
-
-                updatePageDisplay();
-
-            }
-
-        },
-
-        500
-
-    );
-
-}
-
-
-/* =========================================================
-   ZOOM
-========================================================= */
-
-function zoomIn() {
-
-    zoomLevel += 0.1;
-
-
-    if (zoomLevel > 2) {
-
-        zoomLevel = 2;
-
-    }
-
-
+    manualZoom = false;
+    fitScale = calculateFitScale();
+    zoomLevel = fitScale;
     applyZoom();
-
 }
-
-
-function zoomOut() {
-
-    zoomLevel -= 0.1;
-
-
-    if (zoomLevel < 0.7) {
-
-        zoomLevel = 0.7;
-
-    }
-
-
-    applyZoom();
-
-}
-
 
 function applyZoom() {
+    const wrapper = document.getElementById("bookWrapper");
+    wrapper.style.width = (pageWidth * ((currentPage === 1) ? 1 : 2)) + "px";
+    wrapper.style.height = pageHeight + "px";
+    wrapper.style.transform = "scale(" + zoomLevel + ")";
 
-
-    const wrapper =
-        document.getElementById("bookWrapper");
-
-
-    wrapper.style.transform =
-        "scale(" + zoomLevel + ")";
-
-
-    document.getElementById("zoomValue")
-        .innerText =
-        Math.round(zoomLevel * 100) +
-        "%";
-
+    const percent = Math.round((zoomLevel / fitScale) * 100);
+    document.getElementById("zoomValue").innerText =
+        manualZoom ? percent + "%" : "Fit";
 }
 
+function zoomIn() {
+    if (!flipbook) return;
+    if (!manualZoom) zoomLevel = fitScale;
+    manualZoom = true;
+    zoomLevel = Math.min(zoomLevel + 0.1, 2.5);
+    applyZoom();
+}
 
-/* =========================================================
-   FULLSCREEN
-========================================================= */
+function zoomOut() {
+    if (!flipbook) return;
+    if (!manualZoom) zoomLevel = fitScale;
+    manualZoom = true;
+    zoomLevel = Math.max(zoomLevel - 0.1, 0.3);
+    applyZoom();
+}
+
+function updatePageDisplay() {
+    document.getElementById("pageInput").value = currentPage;
+    const total = pdfDocument.numPages;
+    document.getElementById("progressBar").style.width = ((currentPage / total) * 100) + "%";
+}
+
+function nextPage() {
+    if (!flipbook || !pdfDocument) return;
+    if (currentPage < pdfDocument.numPages) flipbook.flipNext();
+}
+
+function previousPage() {
+    if (!flipbook) return;
+    if (currentPage > 1) flipbook.flipPrev();
+}
+
+function goToEnteredPage() {
+    if (!flipbook || !pdfDocument) return;
+    let page = parseInt(document.getElementById("pageInput").value);
+    if (isNaN(page)) page = currentPage;
+    page = Math.max(1, Math.min(page, pdfDocument.numPages));
+    currentPage = page;
+    flipbook.turnToPage(page - 1);
+    updatePageDisplay();
+    updateURL();
+    if (!manualZoom) requestAnimationFrame(fitToPage);
+}
+
+function updateURL() {
+    history.replaceState(null, "", "#p=" + currentPage);
+}
+
+function loadPageFromURL() {
+    const match = window.location.hash.match(/p=(\d+)/);
+    if (!match) return;
+    let page = parseInt(match[1]);
+    if (isNaN(page)) return;
+    page = Math.max(1, Math.min(page, pdfDocument.numPages));
+    currentPage = page;
+    setTimeout(function() {
+        if (flipbook) {
+            flipbook.turnToPage(page - 1);
+            updatePageDisplay();
+            if (!manualZoom) fitToPage();
+        }
+    }, 500);
+}
 
 function toggleFullscreen() {
-
-
-    const viewer =
-        document.documentElement;
-
-
     if (!document.fullscreenElement) {
-
-        viewer.requestFullscreen()
-            .catch(
-                error =>
-                console.log(error)
-            );
-
-    }
-    else {
-
+        document.documentElement.requestFullscreen().catch(error => console.log(error));
+    } else {
         document.exitFullscreen();
-
     }
-
 }
 
+window.addEventListener("resize", function() {
+    if (!manualZoom) requestAnimationFrame(fitToPage);
+});
 
-/* =========================================================
-   KEYBOARD CONTROLS
-========================================================= */
+document.addEventListener("fullscreenchange", function() {
+    setTimeout(function() {
+        if (!manualZoom) fitToPage();
+    }, 100);
+});
 
-document.addEventListener(
-
-    "keydown",
-
-    function(event) {
-
-
-        /*
-         * Don't interfere with page input
-         */
-
-        if (
-            event.target.tagName ===
-            "INPUT"
-        ) {
-
-            return;
-
-        }
-
-
-        if (
-            event.key === "ArrowRight"
-        ) {
-
-            nextPage();
-
-        }
-
-
-        if (
-            event.key === "ArrowLeft"
-        ) {
-
-            previousPage();
-
-        }
-
-
-        if (
-            event.key === "+"
-            ||
-            event.key === "="
-        ) {
-
-            zoomIn();
-
-        }
-
-
-        if (
-            event.key === "-"
-        ) {
-
-            zoomOut();
-
-        }
-
-    }
-
-);
-
-
-/* =========================================================
-   START
-========================================================= */
+document.addEventListener("keydown", function(event) {
+    if (event.target.tagName === "INPUT") return;
+    if (event.key === "ArrowRight") nextPage();
+    if (event.key === "ArrowLeft") previousPage();
+    if (event.key === "+" || event.key === "=") zoomIn();
+    if (event.key === "-") zoomOut();
+    if (event.key === "0") fitToPage();
+});
 
 loadPDF();
-
 </script>
-
 </body>
-
 </html>
