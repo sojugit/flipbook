@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>My Flipbook</title>
+
+  <!-- PDF.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <!-- PageFlip -->
+  <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #222;
+      color: white;
+      overflow: hidden;
+    }
+
+    /* Header */
+    .header {
+      height: 60px;
+      background: #111;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    /* Main viewer */
+    .viewer {
+      height: calc(100vh - 110px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      padding: 20px;
+    }
+
+    #book {
+      margin: auto;
+    }
+
+    /* Bottom controls */
+    .controls {
+      height: 50px;
+      background: #111;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    button {
+      background: #333;
+      border: 1px solid #555;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button:hover {
+      background: #555;
+    }
+
+    #pageInfo {
+      min-width: 100px;
+      text-align: center;
+    }
+
+    /* Loading */
+    #loading {
+      position: fixed;
+      inset: 0;
+      background: #222;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 20px;
+      z-index: 1000;
+    }
+
+    /* Mobile */
+    @media (max-width: 700px) {
+
+      .header {
+        height: 50px;
+      }
+
+      .title {
+        font-size: 16px;
+      }
+
+      .viewer {
+        height: calc(100vh - 100px);
+        padding: 5px;
+      }
+
+      .controls {
+        height: 50px;
+      }
+
+      button {
+        padding: 7px 10px;
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="loading">
+    Loading Flipbook...
+  </div>
+
+  <header class="header">
+    <div class="title">
+      My Digital Flipbook
+    </div>
+  </header>
+
+  <main class="viewer">
+    <div id="book"></div>
+  </main>
+
+  <div class="controls">
+
+    <button onclick="previousPage()">
+      ◀ Previous
+    </button>
+
+    <span id="pageInfo">
+      Page 0 / 0
+    </span>
+
+    <button onclick="nextPage()">
+      Next ▶
+    </button>
+
+  </div>
+
+  <script>
+
+    /*
+     * --------------------------------------------------
+     * PDF FILE
+     * --------------------------------------------------
+     *
+     * For our first test we will use a sample PDF.
+     *
+     * Later we will replace this with:
+     *
+     * Google Drive PDF
+     * or
+     * PDF stored in your GitHub repository.
+     */
+
+    const PDF_URL =
+      "https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf";
+
+
+    /*
+     * PDF.js worker
+     */
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+
+    let pdfDocument = null;
+    let flipbook = null;
+
+
+    /*
+     * Load PDF
+     */
+
+    async function loadPDF() {
+
+      try {
+
+        pdfDocument =
+          await pdfjsLib.getDocument(PDF_URL).promise;
+
+        console.log(
+          "PDF pages:",
+          pdfDocument.numPages
+        );
+
+        await createFlipbook();
+
+        document.getElementById("loading").style.display =
+          "none";
+
+      } catch (error) {
+
+        console.error(error);
+
+        document.getElementById("loading").innerHTML =
+          "Unable to load PDF";
+
+      }
+
+    }
+
+
+    /*
+     * Create flipbook
+     */
+
+    async function createFlipbook() {
+
+      const bookElement =
+        document.getElementById("book");
+
+
+      /*
+       * Create PageFlip
+       */
+
+      flipbook = new St.PageFlip(
+        bookElement,
+        {
+
+          width: 450,
+
+          height: 600,
+
+          size: "stretch",
+
+          minWidth: 250,
+
+          maxWidth: 900,
+
+          minHeight: 350,
+
+          maxHeight: 1200,
+
+          maxShadowOpacity: 0.5,
+
+          showCover: true,
+
+          mobileScrollSupport: true
+
+        }
+      );
+
+
+      /*
+       * Generate pages
+       */
+
+      const pages = [];
+
+
+      for (
+        let pageNumber = 1;
+        pageNumber <= pdfDocument.numPages;
+        pageNumber++
+      ) {
+
+        const page =
+          await pdfDocument.getPage(pageNumber);
+
+
+        const viewport =
+          page.getViewport({
+            scale: 1.5
+          });
+
+
+        const canvas =
+          document.createElement("canvas");
+
+
+        canvas.width =
+          viewport.width;
+
+        canvas.height =
+          viewport.height;
+
+
+        const context =
+          canvas.getContext("2d");
+
+
+        await page.render({
+
+          canvasContext: context,
+
+          viewport: viewport
+
+        }).promise;
+
+
+        /*
+         * Create page element
+         */
+
+        const pageElement =
+          document.createElement("div");
+
+
+        pageElement.className =
+          "page";
+
+
+        pageElement.style.background =
+          "#ffffff";
+
+
+        pageElement.appendChild(canvas);
+
+
+        pages.push(pageElement);
+
+      }
+
+
+      /*
+       * Load pages
+       */
+
+      flipbook.loadFromHTML(pages);
+
+
+      /*
+       * Page changed
+       */
+
+      flipbook.on(
+        "flip",
+        function (event) {
+
+          updatePageNumber(
+            event.data + 1
+          );
+
+        }
+      );
+
+
+      updatePageNumber(1);
+
+    }
+
+
+    /*
+     * Page navigation
+     */
+
+    function nextPage() {
+
+      if (flipbook) {
+
+        flipbook.flipNext();
+
+      }
+
+    }
+
+
+    function previousPage() {
+
+      if (flipbook) {
+
+        flipbook.flipPrev();
+
+      }
+
+    }
+
+
+    /*
+     * Page number
+     */
+
+    function updatePageNumber(page) {
+
+      document.getElementById("pageInfo").innerText =
+        "Page " +
+        page +
+        " / " +
+        pdfDocument.numPages;
+
+    }
+
+
+    /*
+     * Start
+     */
+
+    loadPDF();
+
+  </script>
+
+</body>
+</html>
